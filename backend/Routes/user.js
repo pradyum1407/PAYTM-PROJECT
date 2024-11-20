@@ -12,17 +12,19 @@ require('dotenv').config();
 
 Router.post("/signup", async (req, res) => {
 
-    const { username, password, firstname, lastname } = req.body
+    const { username, password, firstName, lastName } = req.body
+console.log(req.body);
 
     //zod input validation
     const userValidation = z.object({
         username: z.string().email(),
         password: z.string().min(6),
-        firstname: z.string().max(30),
-        lastname: z.string().max(30)
+        firstName: z.string().max(30),
+        lastName: z.string().max(30)
     })
+console.log(userValidation);
 
-    const validated = userValidation.safeParse({ username, password, firstname, lastname })
+    const validated = userValidation.safeParse({ username, password, firstName, lastName })
 
     console.log(validated);
 
@@ -41,15 +43,15 @@ Router.post("/signup", async (req, res) => {
     }
 
     //hashed password using bcrypt
-    const hash = await bcrypt.hash(password, 10)
+    const hash = await bcrypt.hash(password, 10) 
 
 
     //creating a user in the database after validation
     const userCreated = await User.create({
         username: username,
         password: hash,
-        firstname: firstname,
-        lastname: lastname
+        firstName: firstName,
+        lastName: lastName
     })
 
     //generated a jwt token  
@@ -126,16 +128,17 @@ Router.post("/signin", async (req, res) => {
 
 Router.put("/", authmiddleware, async (req, res) => {
 
-    const { firstname, password, lastname } = req.body;
-
+    const { firstName, password, lastName } = req.body;
+    console.log(req.body);
+    
     //zod validation  
     const updateBody = z.object({
-        firstname: z.string().optional(),
-        lastname: z.string().optional(),
+        firstName: z.string().optional(),
+        lastName: z.string().optional(),
         password: z.string().optional()
     })
-
-    const validated = updateBody.safeParse({ firstname, lastname, password })
+    
+    const validated = updateBody.safeParse({ firstName, lastName, password })
     console.log(validated);
 
     if (!validated.success) {
@@ -162,44 +165,30 @@ Router.put("/", authmiddleware, async (req, res) => {
 //-------------------------------------------------------------------------------------------------
 
 Router.get("/bulk", async (req, res) => {
-    const filter = req.query.filter || ""
+    const filter = req.query.filter || "";
+console.log(filter);
 
-    if(!filter){
-        return res.status(411).json({
-            msg:"value cant be empty"
-        })
-    }
-    try{
+    const users = await User.find( 
+        {  
+          $or: [{
+              firstName: {
+                  "$regex": filter
+              }
+          }, {    
+              lastName: {
+                  "$regex": filter
+              }
+          }]
+    })
+console.log(users);
 
-        const users = await User.find({
-            $or: [{
-                firstname: {
-                    $regex: filter,
-                    $options:"i"
-                }
-            },{
-                lastname: {
-                    $regex: filter,
-                    $options:"i"
-                }
-            }
-            ]
-        })
-    
-        res.status(200).json({
-            users:users.map(user =>({
-                username:user.username,
-                firstname:user.firstName,
-                lastname:user.lastName,
-                _id:user._id
-            })) 
-    
-        })
-    }
-    catch(err){
-        res.status(500).json({
-            msg:"internal server error"
-        })
-    }
+    res.json({
+        user: users.map(user => ({
+            username: user.username,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            _id: user._id
+        }))
+    })
 })
 module.exports = Router;
