@@ -2,7 +2,7 @@ const express = require("express")
 const { z } = require("zod")
 const jwt = require("jsonwebtoken")
 const Router = express.Router()
-const { User } = require("../Db")
+const { User, Account } = require("../Db")
 const bcrypt = require("bcrypt")
 const authmiddleware = require("../middleware")
 require('dotenv').config();
@@ -13,7 +13,6 @@ require('dotenv').config();
 Router.post("/signup", async (req, res) => {
 
     const { username, password, firstName, lastName } = req.body
-console.log(req.body);
 
     //zod input validation
     const userValidation = z.object({
@@ -22,7 +21,6 @@ console.log(req.body);
         firstName: z.string().max(30),
         lastName: z.string().max(30)
     })
-console.log(userValidation);
 
     const validated = userValidation.safeParse({ username, password, firstName, lastName })
 
@@ -54,8 +52,16 @@ console.log(userValidation);
         lastName: lastName
     })
 
-    //generated a jwt token  
     const userid = userCreated._id
+    
+    //generated the  account balance of user
+    await Account.create({
+        userid,
+        balance:Math.floor(Math.random()*10000 + 1)
+    })
+
+
+    //generated a jwt token  
     if (userCreated) {
         const token = jwt.sign({ userid }, (process.env.JWT_SCERET))
         res.status(200).json({

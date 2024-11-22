@@ -1,4 +1,5 @@
 const  mongoose= require("mongoose");
+const { number } = require("zod");
 require('dotenv').config();
 
 
@@ -7,12 +8,8 @@ mongoose.connect(process.env.DB_URI)
     .then(() => console.log('MongoDB connected successfully!'))
     .catch((err) => console.error('MongoDB connection error:', err));
 
-//  conn.on('connected',()=> console.log("connected"));
-//  conn.on('disconnected',()=> console.log("disconnected"));
 
-
-
-const Schema = new mongoose.Schema({
+const userSchema = new mongoose.Schema({
 
     username:String,
     password:String,
@@ -20,6 +17,22 @@ const Schema = new mongoose.Schema({
     lastName:String
 })
 
-const User = mongoose.model("User", Schema)
+const AccountSchema= new mongoose.Schema({
+    
+    userid:{
+    type:mongoose.Schema.Types.ObjectId,
+    ref:"User",
+    required:true,
+    },
+    balance:{
+        type:Number,
+        required:true
+    }
 
-module.exports=({User})
+})
+
+
+
+const User = mongoose.model("User", userSchema)
+const Account = mongoose.model("Account",AccountSchema)
+module.exports=({User,Account})
