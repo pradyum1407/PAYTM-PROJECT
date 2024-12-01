@@ -13,6 +13,7 @@ require('dotenv').config();
 Router.post("/signup", async (req, res) => {
 
     const { username, password, firstName, lastName } = req.body
+console.log(req.body);
 
     //zod input validation
     const userValidation = z.object({
@@ -28,7 +29,7 @@ Router.post("/signup", async (req, res) => {
 
     if (!validated.success) {
         return res.status(411).json({
-            msg: "Email already taken / Incorrect inputs"
+            msg: "Incorrect inputs"
         })
     }
 
@@ -36,7 +37,7 @@ Router.post("/signup", async (req, res) => {
     const verify = await User.findOne({ username: username })
     if (verify) {
         return res.status(411).json({
-            msg: "Email already taken / Incorrect inputs"
+            msg: "Email already taken "
         })
     }
 

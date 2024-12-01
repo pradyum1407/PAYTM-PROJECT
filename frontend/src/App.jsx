@@ -17,7 +17,6 @@ function App() {
       <Route path="/Send" element={< Send/>} />
       </Routes>
       </BrowserRouter>
-
     </>
   )
 }
