@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import Link from "react-router"
+import { Link } from "react-router-dom";
 import { InputFiled } from '../components/app/user/Input'; // Ensure this path is correct
 import { useNavigate } from 'react-router-dom';
 import { signupForm } from '../components/app/user/signup'; // Ensure this path is correct
@@ -102,7 +102,7 @@ const Signup = () => {
           value={Data.password}
           onChange={handleChange}
         />
-    <h1>Already have an account<Link to="/Signin">Login</Link></h1>
+    <h4>Already have an account<Link to="/Signin">SignIn</Link></h4>
 
         <input type="submit" value="Register" className="btn" />
       </form>

@@ -13,7 +13,6 @@ require('dotenv').config();
 Router.post("/signup", async (req, res) => {
 
     const { username, password, firstName, lastName } = req.body
-console.log(req.body);
 
     //zod input validation
     const userValidation = z.object({
@@ -25,7 +24,6 @@ console.log(req.body);
 
     const validated = userValidation.safeParse({ username, password, firstName, lastName })
 
-    console.log(validated);
 
     if (!validated.success) {
         return res.status(411).json({
@@ -77,6 +75,8 @@ console.log(req.body);
 //route to signin 
 Router.post("/signin", async (req, res) => {
     const { username, password } = req.body;
+    console.log(req.body);
+
     //zod validation
     const signinBody = z.object({
         username: z.string().email(),
@@ -84,6 +84,7 @@ Router.post("/signin", async (req, res) => {
     })
 
     const validated = signinBody.safeParse({ username, password })
+console.log(validated);
 
 
     if (!validated.success) {
