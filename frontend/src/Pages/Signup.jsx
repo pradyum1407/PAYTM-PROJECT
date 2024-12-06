@@ -49,10 +49,12 @@ const Signup = () => {
 
       //setting the token to the storage 
       localStorage.setItem("authtoken", response.token)
+      localStorage.setItem("user", JSON.stringify({ firstName: Data.firstName }));
+
 
       //navigating to the dashboard
       setTimeout(() => {
-        navigate("/");
+        navigate("/dashboard");
       }, 5000)
 
     } catch (error) {

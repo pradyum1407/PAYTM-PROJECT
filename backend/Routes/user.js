@@ -40,7 +40,7 @@ Router.post("/signup", async (req, res) => {
     }
 
     //hashed password using bcrypt
-    const hash = await bcrypt.hash(password, 10) 
+    const hash = await bcrypt.hash(password, 10)
 
 
     //creating a user in the database after validation
@@ -52,11 +52,11 @@ Router.post("/signup", async (req, res) => {
     })
 
     const userid = userCreated._id
-    
+
     //generated the  account balance of user
     await Account.create({
         userid,
-        balance:Math.floor(Math.random()*10000 + 1)
+        balance: Math.floor(Math.random() * 10000 + 1)
     })
 
 
@@ -84,7 +84,7 @@ Router.post("/signin", async (req, res) => {
     })
 
     const validated = signinBody.safeParse({ username, password })
-console.log(validated);
+    console.log(validated);
 
 
     if (!validated.success) {
@@ -138,14 +138,14 @@ Router.put("/", authmiddleware, async (req, res) => {
 
     const { firstName, password, lastName } = req.body;
     console.log(req.body);
-    
+
     //zod validation  
     const updateBody = z.object({
         firstName: z.string().optional(),
         lastName: z.string().optional(),
         password: z.string().optional()
     })
-    
+
     const validated = updateBody.safeParse({ firstName, lastName, password })
     console.log(validated);
 
@@ -172,23 +172,32 @@ Router.put("/", authmiddleware, async (req, res) => {
 })
 //-------------------------------------------------------------------------------------------------
 
-Router.get("/bulk", async (req, res) => {
+Router.get("/bulk", authmiddleware, async (req, res) => {
     const filter = req.query.filter || "";
-console.log(filter);
+    console.log(filter);
 
-    const users = await User.find( 
-        {  
-          $or: [{
-              firstName: {
-                  "$regex": filter
-              }
-          }, {    
-              lastName: {
-                  "$regex": filter
-              }
-          }]
+    const users = await User.find({
+        $and:[
+            
+        {
+            $or: [{
+                firstName: {
+                    "$regex": filter,
+                    "$options": "i"
+                }
+            }, {
+                lastName: {
+                    "$regex": filter,
+                    "$options": "i"
+                }
+             }]
+        }, 
+        {
+            _id :{$ne: req.userid}
+        }]
+
     })
-console.log(users);
+    console.log(users);
 
     res.json({
         user: users.map(user => ({
