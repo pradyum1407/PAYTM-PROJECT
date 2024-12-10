@@ -22,6 +22,13 @@ const Appbar = () => {
         <p style={{ margin: 0 }}>hello</p>
         <p style={{ margin: 0 }} >{userInitial}</p>
       </div>
+      {/* logout functionality of the user */}
+      <button onClick={() => {
+        localStorage.removeItem("authtoken");
+        localStorage.removeItem("user");
+        navigate("/singin");
+      }}> logout user 
+      </button>
     </div>
   );
 };

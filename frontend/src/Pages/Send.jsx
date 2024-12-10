@@ -1,8 +1,11 @@
 import React from 'react'
+import { SendMoney } from '../components/app/account/SendMoney'
 
 const Send = () => {
   return (
-    <div>Send</div>
+    <>
+    <SendMoney/>
+    </>
   )
 }
 

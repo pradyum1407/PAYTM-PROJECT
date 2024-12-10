@@ -1,5 +1,5 @@
 const express = require("express")
-const { Account } = require("../Db")
+const { Account, Transaction } = require("../Db")
 const { default: mongoose } = require("mongoose")
 const authmiddleware = require("../middleware")
 const Router = express.Router()
@@ -20,21 +20,31 @@ Router.get("/balance", authmiddleware, async (req, res) => {
 
 
 //endpoint for user to transfer money to diffrent account
-
 Router.post("/transfer", authmiddleware, async (req, res) => {
     //created a session 
     const session = await mongoose.startSession();
-
+    
     //start the transaction
     session.startTransaction();
+    let transaction
     try {
 
         const { to, amount } = req.body;
 
         if (!to || amount <= 0) {
             await session.abortTransaction();
+
+            transaction = new Transaction({
+                senderId: req.userid,
+                receiverId: to,
+                Amount: amount,
+                status: "failed",
+            });
+            await transaction.save({ session });
             return res.json({
-                msg: "invalid transfer detail"
+                success:false,
+                transaction,
+                msg:"invalid detail filled"
             })
         }
         //fetching the accounts from the db
@@ -45,7 +55,18 @@ Router.post("/transfer", authmiddleware, async (req, res) => {
 
         if (!account || account.balance < amount) {
             await session.abortTransaction();
+
+            transaction = new Transaction({
+                senderId: req.userid,
+                receiverId: to,
+                Amount: amount,
+                status: "failed",
+            });
+            await transaction.save({ session });
+
             return res.status(404).json({
+                success:false,
+                transaction,
                 msg: "insufficent balance"
             })
         }
@@ -56,7 +77,18 @@ Router.post("/transfer", authmiddleware, async (req, res) => {
 
         if (!toaccount) {
             await session.abortTransaction();
+
+            transaction = new Transaction({
+                senderId: req.userid,
+                receiverId: to,
+                Amount: amount,
+                status: "failed",
+            });
+            await transaction.save({ session });
+
             return res.status(404).json({
+                success:false,
+                transaction,
                 msg: "invalid account"
             })
         }
@@ -65,19 +97,41 @@ Router.post("/transfer", authmiddleware, async (req, res) => {
         await Account.updateOne({ userid: req.userid }, { $inc: { balance: -amount } }).session(session)
         await Account.updateOne({ userid: to }, { $inc: { balance: amount } }).session(session)
 
+
+       transaction= new Transaction({
+            senderId:req.userid,
+            receiverId:to,
+            Amount:amount,
+            status:"success",
+        })
+
+        await transaction.save({session});
         //commit the whole transaction
         await session.commitTransaction();
 
         //upddating the user
-        res.json({
-            msg: "Transfer succesfull"
+        res.status(200).json({
+            success:true,
+            transaction
         })
 
     } catch (err) {
         await session.abortTransaction()
         console.log(err)
-        res.json({
-            msg: "Error while doing transaction"
+
+        if (!transaction) {
+            transaction = new Transaction({
+                senderId: req.userid,
+                receiverId: to,
+                Amount: amount,
+                status: "failed",
+            });
+            await transaction.save({ session });
+        }
+
+        res.status(500).json({
+            success:false,
+            transaction
         })
     } finally {
         await session.endSession()

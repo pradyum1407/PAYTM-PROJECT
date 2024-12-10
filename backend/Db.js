@@ -31,8 +31,38 @@ const AccountSchema= new mongoose.Schema({
 
 })
 
+const TransactionSchema=new mongoose.Schema({
+    senderId:{
+        type:mongoose.Schema.Types.ObjectId,
+        ref:"User",
+        required:true
+    },
 
+    receiverId:{
+        type:mongoose.Schema.Types.ObjectId,
+        ref:"User",
+        required:true
+    },
+
+    Amount:{
+        type:Number,
+        required:true
+    },
+
+    status:{
+        type:String,
+        enum:["pending","success","failed"],
+        default:"pending"
+    },
+
+    date:{
+        type:Date,
+        default:Date.now
+    },
+
+})
 
 const User = mongoose.model("User", userSchema)
 const Account = mongoose.model("Account",AccountSchema)
-module.exports=({User,Account})
+const Transaction=mongoose.model("Transaction",TransactionSchema)
+module.exports=({User,Account,Transaction})
